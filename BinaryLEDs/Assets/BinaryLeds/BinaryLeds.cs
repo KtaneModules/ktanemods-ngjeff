@@ -7,7 +7,6 @@ public class BinaryLeds : MonoBehaviour
 	public Material LedOnMaterial;
 	public KMSelectable[] wires;
 
-	//	private int [] testSequence = {1,2,3,4,5,6,7,8,9,10};
 	// DONE list:
 	// Don't cut an already cut wire
 	// Speed up when a wrong wire is cut
@@ -21,18 +20,23 @@ public class BinaryLeds : MonoBehaviour
 	private const float PERCENT_INTERVAL_SHOWN = 1.0f;  // How long the lights are on in the interval.
 	private const int NUM_SEQUENCES = 8;
 	private const int SEQUENCE_LENGTH = 14;
-	private float BLINK_DELAY = 1.0f;  // The time it takes to move from one number to another.  
+	/*
+	 * TEST DATA
+	private int [,] sequences = {{1,2,3,4,5,6,7,8,9,10}};
+	private int [,] solutions = {{1,2,3}};
+	*/
 
 	private int [,] sequences = {{17,15,6,2,24,8,26,25,21,24,1,15,18,8},
-		{18,15,15,31,12,6,19,21,11,16,19,2,1,29},
+		{18,15,19,31,12,6,19,21,11,16,19,2,1,29},
 		{8,25,1,15,20,15,9,3,6,24,1,24,5,26},
-		{21,27,6,12,27,20,20,1,19,15,3,13,9,28},
+		{21,27,6,12,27,20,7,1,19,15,3,13,9,28},
 		{3,21,14,22,7,28,16,27,22,17,26,2,31,15},
 		{8,22,30,19,1,25,31,16,9,7,6,13,9,7},
-		{5,18,12,7,5,12,31,16,10,10,17,9,9,25},
+		{5,18,12,7,5,12,31,16,10,15,17,9,12,25},
 		{4,20,18,25,20,4,24,29,17,16,12,16,29,19},
 	};
-	//Solutions are 0=red, 1=green, 2=blue
+
+    //Solutions are 0=red, 1=green, 2=blue
 	private int [,] solutions = {{5,3,7},
 		{11,8,4},
 		{9,1,2},
@@ -46,6 +50,8 @@ public class BinaryLeds : MonoBehaviour
 	private int sequenceIndex;  //the sequence we're using on this instantiation of the module
 	private float counterStartTime; 
 	private int initialOffset;
+	private float blinkDelay = 1.0f;  // The time it takes to move from one number to another.  
+
 
 	private enum WireNames
 	{
@@ -59,6 +65,7 @@ public class BinaryLeds : MonoBehaviour
 
     int correctIndex;
     bool isActivated = false;
+	bool solved = false;
 
     void Start()
     {
@@ -75,7 +82,7 @@ public class BinaryLeds : MonoBehaviour
 
 		// Set up the LED blink pattern.
 		counterStartTime = Time.time;
-		int timeIndex = GetIndexFromTime (Time.time, BLINK_DELAY);
+		int timeIndex = GetIndexFromTime (Time.time, blinkDelay);
 		ApplyToLeds (sequences[sequenceIndex, timeIndex]);
 
 		// Prep the wires
@@ -94,12 +101,18 @@ public class BinaryLeds : MonoBehaviour
 
 	void Update()
 	{
+		// when solved, turn off the lights.
+		if (solved) {
+			ZeroLeds ();
+			return;
+		}
+
 		// Only on updates, we'll hide the LEDs if we're close to the end of an interval
-		float percentOfIntervalDone = ((Time.time - counterStartTime) % BLINK_DELAY) / BLINK_DELAY;
+		float percentOfIntervalDone = ((Time.time - counterStartTime) % blinkDelay) / blinkDelay;
 		if (percentOfIntervalDone > PERCENT_INTERVAL_SHOWN) {
 			ZeroLeds ();
 		} else {
-			int timeIndex = GetIndexFromTime (Time.time, BLINK_DELAY);
+			int timeIndex = GetIndexFromTime (Time.time, blinkDelay);
 			ApplyToLeds (sequences [sequenceIndex, timeIndex]);
 		}
 	}
@@ -135,7 +148,7 @@ public class BinaryLeds : MonoBehaviour
 			return;
 		}
 
-		int timeIndex = GetIndexFromTime (Time.time, 1);
+		int timeIndex = GetIndexFromTime (Time.time, blinkDelay);
 		Debug.Log("Cutting wire " + info.color + ".  Required time index is " + solutions[sequenceIndex, (int)info.color] + ", current time is " + timeIndex);
 		if (!isActivated)
 		{
@@ -148,6 +161,7 @@ public class BinaryLeds : MonoBehaviour
 			if (solutions[sequenceIndex, (int)info.color] == timeIndex)
 			{
 				GetComponent<KMBombModule>().HandlePass();
+				solved = true;
 			}
 			else
 			{
@@ -164,10 +178,10 @@ public class BinaryLeds : MonoBehaviour
 	// Reduce in two stages.  First to .66, and then to .5.  Nothing after that.
 	void ReduceBlinkDelay()
 	{
-		if (this.BLINK_DELAY > 0.9f) {
-			this.BLINK_DELAY = .66f;
+		if (this.blinkDelay > 0.9f) {
+			this.blinkDelay = .66f;
 		} else {
-			this.BLINK_DELAY = .5f;
+			this.blinkDelay = .5f;
 		}
 	}
 

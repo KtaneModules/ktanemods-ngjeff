@@ -11,8 +11,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5cf2299c8864afe4ab42466f546ae20d, type: 3}
   m_Name: WorkshopItem
   m_EditorClassIdentifier: 
-  WorkshopPublishedFileID: 0
-  Title: test
-  Description: 
-  PreviewImage: {fileID: 0}
-  Tags: []
+  WorkshopPublishedFileID: 949930700
+  Title: Binary LEDs
+  Description: 'Binary.  A time-honored method of communication via tiny blinking
+    lights.
+
+
+    [H1]Manual[/H1]
+
+    [url=https://cdn.rawgit.com/ngjeff/ktanemods/1d8b2744/BinaryLEDs/Manual/BinaryLeds.html]HTML[/url]
+
+    [url=https://cdn.rawgit.com/ngjeff/ktanemods/1d8b2744/BinaryLEDs/Manual/BinaryLeds.pdf]PDF[/url]'
+  PreviewImage: {fileID: 2800000, guid: 9e5bda4ef1aec4f4da7420ea054b93de, type: 3}
+  Tags:
+  - Regular Module
