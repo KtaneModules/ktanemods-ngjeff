@@ -292,7 +292,7 @@ GameObject:
   - 95: {fileID: 95000010818338516}
   - 114: {fileID: 114000013353488306}
   m_Layer: 0
-  m_Name: Component_PuzzleBackground (1)
+  m_Name: Component_PuzzleBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -478,7 +478,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1000013345712156}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.1133, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_Children:
@@ -1214,7 +1214,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ModuleType: BinaryLeds
-  ModuleDisplayName: Binary Led Module
+  ModuleDisplayName: Binary LEDs
   RequiresTimerVisibility: 0
 --- !u!114 &114000011766976942
 MonoBehaviour:

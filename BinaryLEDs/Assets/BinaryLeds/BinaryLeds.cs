@@ -7,11 +7,9 @@ public class BinaryLeds : MonoBehaviour
 	public Material LedOnMaterial;
 	public KMSelectable[] wires;
 
-	// DONE list:
-	// Don't cut an already cut wire
-	// Speed up when a wrong wire is cut
-	// add an SVD to the manual page
-	// add random initial offset, so even if a module is same sequence it looks different
+	// counters to identify the module from duplicates
+	private static int _moduleIdCounter = 1;
+	private int _moduleId = 0;
 
 	// TODO LIST:
 	// 1.Serial # increments LED value?
@@ -20,6 +18,7 @@ public class BinaryLeds : MonoBehaviour
 	private const float PERCENT_INTERVAL_SHOWN = 1.0f;  // How long the lights are on in the interval.
 	private const int NUM_SEQUENCES = 8;
 	private const int SEQUENCE_LENGTH = 14;
+
 	/*
 	 * TEST DATA
 	private int [,] sequences = {{1,2,3,4,5,6,7,8,9,10}};
@@ -66,9 +65,12 @@ public class BinaryLeds : MonoBehaviour
     int correctIndex;
     bool isActivated = false;
 	bool solved = false;
+	int cutWires = 0;
 
     void Start()
     {
+		_moduleId = _moduleIdCounter++;
+
         Init();
         GetComponent<KMBombModule>().OnActivate += ActivateModule;
     }
@@ -78,7 +80,7 @@ public class BinaryLeds : MonoBehaviour
 		// Set up which pattern we're using, along with what solutions exist
 		sequenceIndex = Random.Range(0, NUM_SEQUENCES);
 		initialOffset = Random.Range (0, SEQUENCE_LENGTH);
-		Debug.Log ("Using sequence number " + sequenceIndex + " with offset " + initialOffset);
+		Debug.LogFormat("[Binary LEDs #{0}] Using sequence number {1} with offset {2}", _moduleId, sequenceIndex, initialOffset);
 
 		// Set up the LED blink pattern.
 		counterStartTime = Time.time;
@@ -95,9 +97,19 @@ public class BinaryLeds : MonoBehaviour
 			info.isCut = false;
 
 			SetWireColor (wires [i], wireColors [(int)colorIndices[i]]);
-			wires[i].OnInteract += delegate () { SnipWire(info); OnCutLogic(info); return false; };
+			wires[i].OnInteract += delegate () { SnipWire(info); OnCutLogic(info, this); CheckThreeWires(this); return false; };
 		}
 	}
+
+	void CheckThreeWires(BinaryLeds scriptObj)
+	{
+		if (scriptObj.cutWires >= 3) {
+			// If you messed up three times, we'll give you a pass since you can't solve the module otherwise.
+			GetComponent<KMBombModule>().HandlePass();
+			solved = true;
+		}
+	}
+
 
 	void Update()
 	{
@@ -142,17 +154,19 @@ public class BinaryLeds : MonoBehaviour
 		GetBrokenWireOfWire(wireInfo.wire).GetComponent<MeshRenderer>().enabled = true;
 	}
 
-	void OnCutLogic(WireDelegateInfo info)
+	void OnCutLogic(WireDelegateInfo info, BinaryLeds scriptObj)
     {
 		if (info.isCut) { // Don't do anything if you already cut the wire
 			return;
 		}
 
 		int timeIndex = GetIndexFromTime (Time.time, blinkDelay);
-		Debug.Log("Cutting wire " + info.color + ".  Required time index is " + solutions[sequenceIndex, (int)info.color] + ", current time is " + timeIndex);
+		Debug.LogFormat("[Binary LEDs #{0}] Cutting wire {1}. Required time index is {2}, current time is {3}", _moduleId, info.color, solutions[sequenceIndex, (int)info.color],  timeIndex);
+		scriptObj.cutWires++;
+
 		if (!isActivated)
 		{
-			Debug.Log("Cut wire before module has been activated!");
+			Debug.LogFormat("[Binary LEDs #{0}] Cut wire before module has been activated!", _moduleId);
 			GetComponent<KMBombModule>().HandleStrike();
 			ReduceBlinkDelay ();
 		}
@@ -196,7 +210,7 @@ public class BinaryLeds : MonoBehaviour
 	void ApplyToLeds(int num)
 	{
 		if (num > 31) {
-			Debug.Log ("Error, number out of range");
+			Debug.LogFormat ("[Binary LEDs #{0}] Error, number out of range",_moduleId);
 			num = 0;
 		}
 

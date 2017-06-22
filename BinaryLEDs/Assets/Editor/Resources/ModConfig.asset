@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Name: ModConfig
   m_EditorClassIdentifier: 
   id: 1254
-  title: test
+  title: Binary LEDs
   version: 1
   outputFolder: build
