@@ -85,7 +85,7 @@ public class BinaryLeds : MonoBehaviour
 		// Set up the LED blink pattern.
 		counterStartTime = Time.time;
 		int timeIndex = GetIndexFromTime (Time.time, blinkDelay);
-		ApplyToLeds (sequences[sequenceIndex, timeIndex]);
+		// ApplyToLeds (sequences[sequenceIndex, timeIndex]);
 
 		// Prep the wires
 		ShuffleColorArray (colorIndices);
@@ -113,6 +113,11 @@ public class BinaryLeds : MonoBehaviour
 
 	void Update()
 	{
+		// Don't display anything until the bomb activates.
+		if (!isActivated) {
+			return;
+		}
+
 		// when solved, turn off the lights.
 		if (solved) {
 			ZeroLeds ();
