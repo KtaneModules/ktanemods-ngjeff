@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections;
+using System.Linq;
+using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class BinaryLeds : MonoBehaviour
 {
@@ -98,6 +102,7 @@ public class BinaryLeds : MonoBehaviour
 
 			SetWireColor (wires [i], wireColors [(int)colorIndices[i]]);
 			wires[i].OnInteract += delegate () { SnipWire(info); OnCutLogic(info, this); CheckThreeWires(this); return false; };
+		    TwitchPlayWires[i] = info;
 		}
 	}
 
@@ -277,4 +282,104 @@ public class BinaryLeds : MonoBehaviour
 		public WireNames color;
 		public bool isCut;
 	}
+
+    //Twitch plays support
+    int TimeOfNextPattern(int pattern, int offset)
+    {
+        for (int i = 0; i < 28; i++)
+        {
+            if (sequences[sequenceIndex, GetIndexFromTime(Time.time + ((offset + i) * blinkDelay), blinkDelay)] == pattern)
+                return i;
+        }
+        return 28;
+    }
+
+    private WireDelegateInfo[] TwitchPlayWires = new WireDelegateInfo[3];
+
+    private string TwitchHelpMessage = "Cut the wire on a specific sequence with !{0} cut red 25 26 8. (The color wire will be cut on the last number specified.)";
+    IEnumerator ProcessTwitchCommand(string command)
+    {
+        string[] split = command.ToLowerInvariant().Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+        if (split.Length < 3 || (split[0] != "cut" && split[0] != "c"))
+        {
+            yield break;
+        }
+        int index;
+        switch (split[1])
+        {
+            case "red":
+            case "r":
+                index = colorIndices.ToList().IndexOf(WireNames.RED);
+                break;
+            case "blue":
+            case "b":
+                index = colorIndices.ToList().IndexOf(WireNames.BLUE);
+                break;
+            case "green":
+            case "g":
+                index = colorIndices.ToList().IndexOf(WireNames.GREEN);
+                break;
+            default:
+                yield break;
+        }
+        if (TwitchPlayWires[index].isCut)
+        {
+            yield return null;
+            yield return "sendtochaterror This wire has already been cut.";
+            yield break;
+        }
+
+        foreach (string binary in split.Skip(2))
+        {
+            int result;
+            if (!int.TryParse(binary, out result) || result < 1 || result > 31)
+                yield break;
+        }
+
+        yield return null;
+        int timeIndexesRequired = 0;
+        foreach (string binary in split.Skip(2))
+        {
+            timeIndexesRequired += TimeOfNextPattern(int.Parse(binary), timeIndexesRequired);
+        }
+        if ((timeIndexesRequired * blinkDelay) >= 40)
+            yield return "elevator music";
+
+
+        foreach (string binary in split.Skip(2))
+        {
+            int timeIndexMin = SEQUENCE_LENGTH;
+            int timeIndexMax = 0;
+            int result = int.Parse(binary);
+
+            int prevIndex = -1;
+            while (result != sequences[sequenceIndex, GetIndexFromTime(Time.time, blinkDelay)])
+            {
+                int timeIndex = GetIndexFromTime(Time.time, blinkDelay);
+                if (timeIndex != prevIndex)
+                {
+                    Debug.LogFormat("Looking for LED pattern {0}, Current LED pattern is {1}, Current Time index is {2}", result, sequences[sequenceIndex, timeIndex], timeIndex);
+                    prevIndex = timeIndex;
+                }
+
+                if (timeIndex < timeIndexMin)
+                    timeIndexMin = timeIndex;
+
+                if (timeIndex > timeIndexMax)
+                    timeIndexMax = timeIndex;
+
+                if ((timeIndexMin == 0) && (timeIndexMax == (SEQUENCE_LENGTH - 1)))
+                {
+                    yield return "sendtochaterror The specifified led pattern could not be found.";
+                    yield break;
+                }
+
+                yield return "trycancel";
+                yield return null;
+            }
+            Debug.LogFormat("Found LED pattern {0} at Time index {1}", result, GetIndexFromTime(Time.time, blinkDelay));
+        }
+        TwitchPlayWires[index].wire.OnInteract();
+        yield return new WaitForSeconds(0.1f);
+    }
 }
