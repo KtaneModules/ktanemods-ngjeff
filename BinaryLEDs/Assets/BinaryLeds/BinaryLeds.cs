@@ -15,9 +15,8 @@ public class BinaryLeds : MonoBehaviour
 	private static int _moduleIdCounter = 1;
 	private int _moduleId = 0;
 
-	// TODO LIST:
+	// Future possibilities list:
 	// 1.Serial # increments LED value?
-	// blink the lights?--they go off towards the end of the period allotted for it.
 
 	private const float PERCENT_INTERVAL_SHOWN = 1.0f;  // How long the lights are on in the interval.
 	private const int NUM_SEQUENCES = 8;
@@ -88,8 +87,6 @@ public class BinaryLeds : MonoBehaviour
 
 		// Set up the LED blink pattern.
 		counterStartTime = Time.time;
-		int timeIndex = GetIndexFromTime (Time.time, blinkDelay);
-		// ApplyToLeds (sequences[sequenceIndex, timeIndex]);
 
 		// Prep the wires
 		ShuffleColorArray (colorIndices);
